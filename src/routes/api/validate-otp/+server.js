@@ -1,47 +1,38 @@
-export async function POST({ request }) {
+export async function POST({ request }) {  // ✅ Ensure POST method exists
     try {
-      // Extract countryCode, phoneNumber, and OTP from the request body
-      const { countryCode, phoneNumber, otp } = await request.json();
-  
-      // Check if all required fields are provided
-      if (!countryCode || !phoneNumber || !otp) {
-        return new Response(
-          JSON.stringify({ error: "Missing required fields (countryCode, phoneNumber, otp)" }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
-        );
-      }
-  
-      // Prepare the request body for the external API
-      const requestBody = {
-        phone: { countryCode, number: phoneNumber },
-        otp: { code: otp }
-      };
-  
-      // Make the API call to validate the OTP
-      const response = await fetch('https://api-tst.trymighty.com/v2/collaborators?action=validate-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer YOUR_API_KEY_HERE' // Replace with your actual API key
-        },
-        body: JSON.stringify(requestBody)
-      });
-  
-      // Log the API response
-      const responseText = await response.text();
-      console.log('API Response:', response.status, responseText);
-  
-      if (response.ok) {
-        return new Response(null, { status: 204 });  // Success (No Content)
-      } else {
-        return new Response(responseText, { status: response.status });  // Forward error message
-      }
+        const { phone, otp } = await request.json();
+
+        if (!phone || !phone.number || !phone.countryCode || !otp || !otp.code) {
+            return new Response(JSON.stringify({ error: "Missing required fields" }), {
+                status: 400,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
+
+        const response = await fetch("https://api-tst.trymighty.com/v2/collaborators?action=validate-otp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ phone, otp })
+        });
+
+        if (response.status === 204) {
+            const token = "your-secure-jwt-token";  // ✅ Replace with real JWT
+            return new Response(JSON.stringify({ token }), {
+                status: 200,
+                headers: { "Content-Type": "application/json" }
+            });
+        } else {
+            const errorData = await response.json();
+            return new Response(JSON.stringify({ error: errorData.error || "OTP validation failed" }), {
+                status: response.status,
+                headers: { "Content-Type": "application/json" }
+            });
+        }
     } catch (error) {
-      console.error('Error forwarding request:', error);
-      return new Response(
-        JSON.stringify({ error: 'Internal Server Error', details: error.message }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
+        console.error("Error in validate-otp:", error);
+        return new Response(JSON.stringify({ error: "Internal Server Error" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+        });
     }
-  }
-  
+}
