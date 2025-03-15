@@ -1,23 +1,26 @@
 <script>
     import { goto } from '$app/navigation';
 
-    let countryCode = ''; 
-    let phoneNumber = '';
-    let otp = '';
-    let otpSent = false; 
-    let isLoading = false;
-    let message = '';
+    // Variables to store user input and UI state
+    let countryCode = '';  // Stores country code input
+    let phoneNumber = '';  // Stores phone number input
+    let otp = '';          // Stores OTP input
+    let otpSent = false;   // Tracks if OTP has been sent
+    let isLoading = false; // Tracks loading state for API calls
+    let message = '';      // Stores user messages (errors/success)
 
     // Request OTP from API
     async function requestOTP() {
-        message = "";
+        message = ""; 
+        // Validate phone number input
         if (!phoneNumber.trim()) {
             message = "❌ Please enter a valid phone number.";
             return;
         }
 
         try {
-            isLoading = true;
+            isLoading = true; 
+            // API request to request OTP
             const response = await fetch('/api/request-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -26,9 +29,10 @@
                 })
             });
 
-            isLoading = false;
+            isLoading = false; 
+
             if (response.status === 204) {
-                otpSent = true;
+                otpSent = true; 
                 message = "✅ OTP sent successfully!";
             } else {
                 const data = await response.json();
@@ -43,14 +47,15 @@
 
     // Validate OTP
     async function validateOTP() {
-        message = "";
+        message = ""; 
         if (!otp.trim()) {
             message = "❌ Please enter the OTP.";
             return;
         }
 
         try {
-            isLoading = true;
+            isLoading = true; 
+            // API request to validate OTP
             const response = await fetch('/api/validate-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -60,7 +65,7 @@
                 })
             });
 
-            isLoading = false;
+            isLoading = false; 
             const data = await response.json();
 
             if (response.ok && data.token) {
@@ -108,6 +113,7 @@
             {isLoading ? "Requesting..." : "Request OTP"}
         </button>
 
+        <!-- Display messages (Success/Error) -->
         <p class="mt-2 text-gray-700">{message}</p>
 
         <!-- OTP Input & Validation -->
@@ -133,6 +139,7 @@
     </div>
 </div>
 
+<!-- Additional Styles -->
 <style>
     button:disabled {
         opacity: 0.6;
@@ -143,3 +150,4 @@
         outline: none;
     }
 </style>
+<!-- End of Login Page -->
