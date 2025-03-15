@@ -1,4 +1,4 @@
-# Trymighty Frontend Developer Challenge
+# Frontend Developer Challenge
 
 ## Project Overview
 This project is a web application designed to allow users to view and cancel their purchases. Users will authenticate via OTP (One-Time Password) and access their orders for the day. The application includes:
