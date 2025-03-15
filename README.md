@@ -151,7 +151,7 @@ Response: 200 OK
    ```
 
 4. **Open in browser:**
-   - Navigate to `http://localhost:5173`
+   - Navigate to `http://localhost:5175`
 
 ## Conclusion
 This project demonstrates how to build a responsive and interactive web application using **Svelte** and **Tailwind CSS**. It efficiently manages user authentication, order retrieval, and order cancellation, providing a smooth user experience.
