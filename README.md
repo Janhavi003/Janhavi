@@ -155,8 +155,10 @@ Response: 200 OK
    npm run dev
    ```
 
-4. **Open in browser:**
-   - Navigate to `http://localhost:5175`
+4. **Deployed Link**
+    ```sh
+      https://janhavi-six.vercel.app/login
+    ```
 
 ## Conclusion
 This project demonstrates how to build a responsive and interactive web application using **Svelte** and **Tailwind CSS**. It efficiently manages user authentication, order retrieval, and order cancellation, providing a smooth user experience.
