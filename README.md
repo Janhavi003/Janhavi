@@ -1,4 +1,9 @@
-# Frontend Developer Challenge
+# TryMighty Frontend Developer Challenge
+
+## Student Details
+
+**Name** - Janhavi Hivarekar
+**University** - Mit-Adt University, Pune
 
 ## Project Overview
 This project is a web application designed to allow users to view and cancel their purchases. Users will authenticate via OTP (One-Time Password) and access their orders for the day. The application includes:
@@ -136,8 +141,8 @@ Response: 200 OK
 
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/YOUR_GITHUB_USERNAME/YOUR_PROJECT_NAME.git
-   cd YOUR_PROJECT_NAME
+   git clone https://github.com/Janhavi003/Janhavi.git
+   cd Janhavi
    ```
 
 2. **Install dependencies:**
