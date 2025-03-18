@@ -1,29 +1,59 @@
+/** @type {import('@sveltejs/kit').RequestHandler} */
 export async function POST({ request }) {
-    try {
-        // Parse the request body to extract phone details
-        const { phone } = await request.json();
+  const { phone } = await request.json();
+  console.log("Received OTP request:", phone);
 
-        // Check if the required phone details are provided
-        if (!phone?.countryCode || !phone?.number) {
-            return new Response(JSON.stringify({ error: "Missing phone details" }), { status: 400 });
-        }
+  // External API base URL (you can change it based on your configuration)
+  const API_BASE = 'https://api-tst.trymighty.com/v2';
+  const endpoint = '/collaborators?action=request-otp'; // Endpoint for OTP request
 
-        // Send OTP request to the external API
-        const response = await fetch("https://api-tst.trymighty.com/v2/collaborators?action=request-otp", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "Accept": "application/json" 
-            },
-            body: JSON.stringify({ phone }) 
-        });
+  try {
+      // Prepare request body for OTP generation
+      const body = { phone };
 
-        // If the response status is 204, OTP request was successful
-        return response.status === 204 
-            ? new Response(null, { status: 204 }) 
-            : new Response(JSON.stringify({ error: "OTP request failed" }), { status: response.status });
-    } catch (error) {
-        console.error("Error in request-otp:", error);
-        return new Response(JSON.stringify({ error: "Internal Server Error" }), { status: 500 });
-    }
+      const headers = {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+      };
+
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body),
+      });
+
+      console.log("API Response Status:", response.status);
+
+      if (response.status === 204) {
+          // No content response, OTP request successful
+          return new Response(null, { status: 204 });
+      }
+
+      // For other statuses, ensure a valid JSON response
+      let data;
+      try {
+          data = await response.json();
+      } catch {
+          // Handle unexpected non-JSON responses gracefully
+          return new Response(
+              JSON.stringify({ error: 'Failed to parse API response' }),
+              { status: 500 }
+          );
+      }
+
+      // Return the data or error message
+      return new Response(
+          JSON.stringify(data),
+          { status: response.status }
+      );
+  } catch (error) {
+      console.error("Error requesting OTP:", error);
+      return new Response(
+          JSON.stringify({
+              error: 'Internal Server Error',
+              message: error.message || error.toString(),
+          }),
+          { status: 500 }
+      );
+  }
 }
