@@ -1,15 +1,27 @@
 <script>
     import { goto } from '$app/navigation';
+    import { onMount, tick } from 'svelte';
+    import { browser } from '$app/environment';
 
-    let countryCode = '';
-    let phoneNumber = '';
-    let otp = '';
-    let otpSent = false;
-    let isLoading = false;
-    let message = '';
+    // User input variables
+    let countryCode = ''; // Stores the country code entered by the user
+    let phoneNumber = ''; // Stores the phone number entered by the user
+    let otp = ''; // Stores the OTP entered by the user
 
+    // UI state variables
+    let otpSent = false; // Tracks if OTP has been sent successfully
+    let isLoading = false; // Tracks loading state for API calls
+    let message = ''; // Stores error or success messages for user feedback
+
+    // Function to request OTP
     async function requestOTP() {
         message = "";
+        
+        // Validate user input
+        if (!countryCode.trim()) {
+            message = "❌ Please enter your country code.";
+            return;
+        }
         if (!phoneNumber.trim()) {
             message = "❌ Please enter a valid phone number.";
             return;
@@ -17,6 +29,9 @@
 
         try {
             isLoading = true;
+            await tick(); // Ensures UI updates before API call
+
+            // API request to request OTP
             const response = await fetch('/api/request-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -26,12 +41,14 @@
             });
 
             isLoading = false;
+            await tick(); // Ensures UI updates
 
+            // Check response status
             if (response.status === 204) {
-                otpSent = true;
+                otpSent = true; // Set OTP sent flag to true
                 message = "✅ OTP sent successfully!";
             } else {
-                const data = await response.json();
+                const data = response.bodyUsed ? await response.json() : {};
                 message = data.error || "❌ Failed to send OTP.";
             }
         } catch (error) {
@@ -41,8 +58,11 @@
         }
     }
 
+    // Function to validate OTP
     async function validateOTP() {
         message = "";
+        
+        // Ensure OTP is entered
         if (!otp.trim()) {
             message = "❌ Please enter the OTP.";
             return;
@@ -50,6 +70,9 @@
 
         try {
             isLoading = true;
+            await tick(); // UI update before API call
+
+            // API request to validate OTP
             const response = await fetch('/api/validate-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -60,12 +83,16 @@
             });
 
             isLoading = false;
-            const data = await response.json();
+            const data = response.bodyUsed ? await response.json() : {};
 
+            // Handle response and redirect if successful
             if (response.ok && data.token) {
-                localStorage.setItem("authToken", data.token);
+                if (browser) {
+                    localStorage.setItem("authToken", data.token); // Store authentication token
+                }
                 message = "✅ OTP verified! Redirecting...";
-                goto("/orders");
+                await tick();
+                goto("/orders"); // Navigate to orders page
             } else {
                 message = data.error || "❌ Invalid OTP. Try again.";
             }
@@ -109,7 +136,7 @@
         </button>
 
         <!-- Display messages (Success/Error) -->
-        <p class="mt-2 text-gray-300 text-center">{message}</p>
+        <p class="mt-2 text-gray-300 text-center" aria-live="polite">{message}</p>
 
         <!-- OTP Input & Validation -->
         {#if otpSent}
@@ -136,11 +163,13 @@
 
 <!-- Modern Glassmorphism & Animations -->
 <style>
+    /* Disable button when loading */
     button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
 
+    /* Remove outline when input is focused */
     input:focus {
         outline: none;
     }
