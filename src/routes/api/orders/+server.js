@@ -1,59 +1,28 @@
-export async function GET({ request }) {
-    // Retrieve the Authorization header from the request
-    const authHeader = request.headers.get("Authorization");
-
-    console.log("Received Auth Header:", authHeader);
-
-    // Validate if the Authorization header exists and has the correct format
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return new Response(JSON.stringify({ error: "Unauthorized - Invalid token format" }), {
-            status: 401,
-            headers: { "Content-Type": "application/json" }
-        });
-    }
-
+export async function GET() {
     try {
-        // Make a GET request to fetch orders from the external API
-        const apiResponse = await fetch("https://api-tst.trymighty.com/v2/orders", {
-            method: "GET",
+        const response = await fetch('https://api-tst.trymighty.com/v2/orders?onlyOrders=TRUE&period=TODAY', {
+            method: 'GET',
             headers: {
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-                "Authorization": authHeader 
-            }
+                'Content-Type': 'application/json',
+                // Add any required authorization headers here, e.g., 'Authorization': 'Bearer <token>'
+            },
         });
 
-        console.log("Orders API Response Status:", apiResponse.status);
-
-        // Handle errors returned by the API
-        if (!apiResponse.ok) {
-            const errorData = await apiResponse.text(); 
-            console.error("API Error Response:", errorData);
-
-            return new Response(JSON.stringify({ 
-                error: "Failed to fetch orders", 
-                status: apiResponse.status,
-                details: errorData
-            }), {
-                status: apiResponse.status,
-                headers: { "Content-Type": "application/json" }
-            });
+        if (!response.ok) {
+            return new Response('Error fetching orders', { status: response.status });
         }
 
-        // Parse and return the response data if the request was successful
-        const data = await apiResponse.json();
-        console.log("Orders Data:", JSON.stringify(data).substring(0, 200) + "..."); 
+        const data = await response.json();
+
         return new Response(JSON.stringify(data), {
             status: 200,
-            headers: { "Content-Type": "application/json" }
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*', // Ensure this is set for CORS
+            },
         });
     } catch (error) {
-        console.error("Error fetching orders:", error);
-
-        // Handle unexpected server errors
-        return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" }
-        });
+        console.error('Error fetching orders:', error);
+        return new Response('Internal Server Error', { status: 500 });
     }
 }
