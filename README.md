@@ -51,24 +51,6 @@ This project is a web application designed to allow users to view and cancel the
    - When the cancel button is clicked, a request is sent to update the order status.
    - The UI updates to reflect the cancellation status.
 
-## File Structure
-
-```
-📂 src
- ┣ 📂 routes
- ┃ ┣ 📂 login  # Login and OTP validation
- ┃ ┃ ┣ 📜 +page.svelte
- ┃ ┣ 📂 orders  # Order list screen
- ┃ ┃ ┣ 📜 +page.svelte
- ┃ ┣ 📂 orders/[id]  # Order details screen
- ┃ ┃ ┣ 📜 +page.svelte
- ┣ 📂 lib
- ┃ ┣ 📜 api.js  # Handles API requests
- ┃ ┣ 📜 store.js  # Manages global state
- ┣ 📜 app.html  # Main HTML template
- ┣ 📜 global.css  # Tailwind CSS styles
-```
-
 ## API Endpoints Used
 
 ### **Request OTP**
