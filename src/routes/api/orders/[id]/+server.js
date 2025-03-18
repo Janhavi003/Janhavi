@@ -3,26 +3,29 @@ export async function GET({ request, params }) {
     const authHeader = request.headers.get("Authorization");
 
     // If the Authorization header is missing, return a 401 Unauthorized response
-    if (!authHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
         return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
 
     try {
         // Construct the API URL using the order ID from the request parameters
         const response = await fetch(`https://api-tst.trymighty.com/v2/orders/${params.id}`, {
-            headers: { "Authorization": authHeader } 
+            method: "GET",
+            headers: { 
+                "Authorization": authHeader,
+                "Accept": "application/json"
+            }
         });
 
         // If the request is successful, return the order data
-        if (response.ok) {
-            const data = await response.json();
-            return new Response(JSON.stringify(data), { status: 200 });
-        } else {
-            // If the request fails, return an error message with the response status
-            return new Response(JSON.stringify({ error: "Failed to fetch order" }), { status: response.status });
+        if (!response.ok) {
+            const errorData = await response.text();
+            return new Response(JSON.stringify({ error: "Failed to fetch order", details: errorData }), { status: response.status });
         }
+
+        const data = await response.json();
+        return new Response(JSON.stringify(data), { status: 200 });
     } catch (error) {
-        // Handle unexpected errors and return a 500 Internal Server Error response
         return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), { status: 500 });
     }
 }

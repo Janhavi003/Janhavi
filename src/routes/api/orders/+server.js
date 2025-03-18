@@ -1,28 +1,39 @@
-export async function GET() {
+export async function GET({ request }) {
+    // Retrieve the Authorization header from the request
+    const authHeader = request.headers.get("Authorization");
+    
+    if (!authHeader?.startsWith("Bearer ")) {
+        return new Response(JSON.stringify({ error: "Unauthorized - Invalid token format" }), { status: 401 });
+    }
+
     try {
-        const response = await fetch('https://api-tst.trymighty.com/v2/orders?onlyOrders=TRUE&period=TODAY', {
-            method: 'GET',
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+        // Make a GET request to fetch orders from the external API
+        const apiResponse = await fetch("https://api-tst.trymighty.com/v2/orders", {
+            method: "GET",
             headers: {
-                'Content-Type': 'application/json',
-                // Add any required authorization headers here, e.g., 'Authorization': 'Bearer <token>'
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": authHeader
             },
+            signal: controller.signal 
         });
 
-        if (!response.ok) {
-            return new Response('Error fetching orders', { status: response.status });
+        clearTimeout(timeoutId);
+
+        if (!apiResponse.ok) {
+            const errorData = await apiResponse.text();
+            return new Response(JSON.stringify({ error: "Failed to fetch orders", details: errorData }), { status: apiResponse.status });
         }
 
-        const data = await response.json();
-
-        return new Response(JSON.stringify(data), {
-            status: 200,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*', // Ensure this is set for CORS
-            },
-        });
+        const data = await apiResponse.json();
+        return new Response(JSON.stringify(data), { status: 200 });
     } catch (error) {
-        console.error('Error fetching orders:', error);
-        return new Response('Internal Server Error', { status: 500 });
+        if (error.name === "AbortError") {
+            return new Response(JSON.stringify({ error: "Request timeout - External API took too long to respond." }), { status: 504 });
+        }
+        return new Response(JSON.stringify({ error: "Internal Server Error", details: error.message }), { status: 500 });
     }
 }
